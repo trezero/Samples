@@ -1,27 +1,17 @@
-﻿/*  
- * ADOBE SYSTEMS INCORPORATED
- * Copyright 2014 Adobe Systems Incorporated
- * All Rights Reserved.
- * 
- * NOTICE:  Adobe permits you to use, modify, and distribute this file in accordance with the 
- * terms of the Adobe license agreement accompanying it.  If you have received this file from a 
- * source other than Adobe, then your use, modification, or distribution of it requires the prior 
- * written permission of Adobe.
- * 
- * ---
- * 
- * This file contains ExtendScript utilities that interact with the application DOM
- * and provide access to the current document and its associated metadata. 
- * 
- * The client-facing XMP service is available as $.XMP in the global ExtendScript 
- * scope. It exposes a convenient and uniform interface for simple XMP properties
- * and abstracts from application-specific implementation details.
- * 
- * If you need your panel to support an application other than Photoshop, Illustrator,
- * InDesign or Premiere you'd have to implement a new delegate object for it. In most
- * cases the XMPScriptAdapter may be a good starting point to customize for your needs.
- * 
- */
+/*************************************************************************
+* ADOBE CONFIDENTIAL
+* ___________________
+*
+* Copyright 2014 Adobe
+* All Rights Reserved.
+*
+* NOTICE: Adobe permits you to use, modify, and distribute this file in
+* accordance with the terms of the Adobe license agreement accompanying
+* it. If you have received this file from a source other than Adobe,
+* then your use, modification, or distribution of it requires the prior
+* written permission of Adobe. 
+**************************************************************************/
+
 
 if(typeof($)=='undefined')
 	$={};
@@ -39,6 +29,7 @@ if(typeof($)=='undefined')
  * IDSN = InDesign
  * PPRO = Premiere Pro
  * ILST = Illustrator
+ * AUDT = Audition
  * 
  * Those correspond to the application ID that can be obtained via the CEP JavaScript 
  * interface.
@@ -270,6 +261,28 @@ $.delegates = (function(exports) {
 	    }
 	});
 	
+	exports["AUDT"] = new XMPScriptAdapter({
+		getTarget: function() {	
+            if (app.activeDocument && app.activeDocument.reflect.name == "WaveDocument") {
+			     return app.activeDocument;
+            }
+            
+            return null;
+		},
+
+		getTargetName: function(target) {
+			return target.displayName;
+		},
+
+		getXmpPacket : function(doc) {
+			return doc.metadata.xmp;
+		},
+	
+		setXmpPacket : function(doc, xmpPacket) {
+			doc.metadata.xmp = xmpPacket;
+		}
+	});
+	
 	return exports;
 	
 })($.delegates || {});
@@ -350,7 +363,7 @@ $.XMP = (function(exports) {
 	exports.commit = function() {
 		DELEGATE_API.commit();
 	};
-		
-	return exports;
+	
+ 	return exports;
 	
 })($.XMP || {});
